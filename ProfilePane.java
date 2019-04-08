@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
@@ -25,6 +26,13 @@ public class ProfilePane extends GridPane{
 	Circle circle1;
 	Button changePaneToSettingsPane;
 	Text name, userHandle, status, followers, following, tooLong ;
+	Text[] tweet= new Text[20];
+	Text[] retweets=new Text[20];
+	Text[]likes= new Text[20];
+	Text[]screename=new Text[20];
+	TextField[]tweetId=new TextField[20];
+	Text[]createdAt=new Text[20];
+	ScrollPane scroll = new ScrollPane();
 
 
 	/**
@@ -33,10 +41,47 @@ public class ProfilePane extends GridPane{
 	 * @param UserInterfaceObject object is used to call the functions related to Twitter.
 	 */
 	public ProfilePane(UserInterfaceObject tester) {
+		Button refresh = new Button("Refresh TimeLine");
+		add(refresh,7,0);
+		refresh.setOnMouseClicked(e->{
+			refreshMyTimeLine();
+		});
+		scroll.setContent(this);
 
 		test=tester;
 		setHgap(10);
 		setVgap(10);
+		Button likeATweet = new Button("LIKE");
+		Button rtATweet = new Button ("RETWEET");
+		TextField likedTweet = new TextField();
+		likedTweet.setPromptText("liked tweet");
+		TextField rtedTweet = new TextField();
+		rtedTweet.setPromptText("retweeted tweet");
+		Button submitComment = new Button ("COMMENT");
+		TextField commentedTweet = new TextField();
+		TextField comment = new TextField();
+		comment.setPromptText("Type Comment Here");
+		commentedTweet.setPromptText("Tweet ID to comment on");
+		
+		add(submitComment,0,12); add(commentedTweet,1,12);
+		add(comment,1,13);
+		
+		add(rtedTweet,1,11);
+		add(likedTweet,1,10);
+		add(likeATweet,0,10);
+		add(rtATweet,0,11);
+		submitComment.setOnMouseClicked(e->{
+			test.commentOnATweet(commentedTweet.getText(), comment.getText());
+			refreshMyTimeLine();
+		});
+		likeATweet.setOnMouseClicked(e->{
+			test.likeATweet(likedTweet.getText());
+			refreshMyTimeLine();
+		});
+		rtATweet.setOnMouseClicked(e->{
+			test.rtATweet(rtedTweet.getText());
+			refreshMyTimeLine();
+		});
 
 		Button tweetOut = new Button("Tweet Out!!");
 		add(tweetOut, 0,3);
@@ -53,6 +98,7 @@ public class ProfilePane extends GridPane{
 		tweetOut.setOnMouseClicked(e->{
 			if(tweet.getLength() <= 280) {
 				test.attemptToTweet(tweet.getText());
+				refreshMyTimeLine();
 				tooLong.setVisible(false);
 			}else {
 				tooLong.setVisible(true);
@@ -64,6 +110,7 @@ public class ProfilePane extends GridPane{
 		wendysDefault.setOnMouseClicked(e->{
 			if(tweet.getLength() <= 272) {
 				test.attemptToTweet(tweet.getText() + " @Wendys");
+				refreshMyTimeLine();
 				tooLong.setVisible(false);
 			}else {
 				tooLong.setVisible(true);
@@ -88,7 +135,7 @@ public class ProfilePane extends GridPane{
 
 		logOut.setOnMouseClicked(e->{
 			try {
-				Files.deleteIfExists(Paths.get("./userKeys.txt"));
+				Files.deleteIfExists(Paths.get("./Saved Users/"+test.getUsername()+".txt"));
 			}
 			catch(NoSuchFileException nf){
 				nf.printStackTrace();
@@ -142,7 +189,7 @@ public class ProfilePane extends GridPane{
 	 */
 	private void addUserName() {
 		getChildren().remove(name);
-		name = new Text ("Name: "+test.getUserName());
+		name = new Text ("Name: "+test.getUserProfileName());
 		add(name,0,1);
 
 	}
@@ -168,11 +215,50 @@ public class ProfilePane extends GridPane{
 	 */
 	public void refreshScreen(){
 		tooLong.setVisible(false);
+		refreshMyTimeLine();
 		addUserBioToPane();
 		addProfilePicToPane();
 		addUserHandleToPane();
 		addFriendsAndFollowers();
 		addUserName();
+	}
+	//employ similar logic here to display timeline
+	//make sure to include all variables
+	private void createMyTimeLine(){
+		String [][] myTimeLineModel = new String [20][7];
+		myTimeLineModel= test.getMyTimeLineModel();
+		int i;
+
+		for(i = 0; i < 20; i++){
+				getChildren().remove(tweetId[i]);
+				getChildren().remove(tweet[i]);
+				getChildren().remove(screename[i]);
+				getChildren().remove(likes[i]);
+				getChildren().remove(retweets[i]);
+				getChildren().remove(createdAt[i]);
+
+				tweetId[i] = new TextField("Tweet ID: "+myTimeLineModel[i][0]); //0 , 6 ,12 , 18
+				tweet[i] = new Text(myTimeLineModel[i][1]);//1, 7 , 13 ,19
+				screename[i] = new Text("Tweeted by: @"+myTimeLineModel[i][3]);//2, 8, 14, 20
+				likes[i] = new Text("Likes: "+myTimeLineModel[i][4]);//3, 9, 15, 21
+				retweets[i] = new Text("Retweets: "+myTimeLineModel[i][5]);//4, 10, 16, 22
+				createdAt[i]=new Text("Created On: "+myTimeLineModel[i][2]);//5, 11, 17, 23
+				
+				tweetId[i].setEditable(false);
+				tweetId[i].setStyle("-fx-background-color: transparent");
+				
+				this.add(tweetId[i], 8,(i*6));
+				this.add(screename[i],8,((i*6)+1));
+				this.add(tweet[i], 8,((i*6)+2));
+				this.add(likes[i], 8,((i*6)+3));
+				this.add(retweets[i], 8,((i*6)+4));
+				this.add(createdAt[i], 8,((i*6)+5));
+		}
+	}
+
+	private void refreshMyTimeLine(){
+		test.makeUserTimeline();
+		createMyTimeLine();
 	}
 
 }

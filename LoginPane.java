@@ -2,6 +2,7 @@
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -55,7 +56,7 @@ public class LoginPane extends GridPane{
 		add(submit, 4, 4);
 		//saved user file name
 		TextField inputUsername = new TextField();
-		inputUsername.setPromptText("Save user under this name to the ");
+		inputUsername.setPromptText("Save user under this name to the file ");
 		add(inputUsername,3,5);
 		//Load a user
 		Button loadUser = new Button ("Choose existing user");
@@ -74,10 +75,12 @@ public class LoginPane extends GridPane{
 		submit.setOnMouseClicked(e->{
 			//if the button was clicked, then
 			if(!inputUsername.getText().trim().isEmpty()){
-				gui.test.username = inputUsername.getText();
-				if(gui.test.validateInputPin(inputPin.getText())) {
+	
+				if(gui.test.validateInputPin(inputPin.getText(),inputUsername.getText())) {
+					nameWarning.setVisible(false);
 					guiM.tabPane.profilePane.refreshScreen();
 					gui.changePaneToTabPane();
+					gui.test.makeTimeLine();
 				}
 			}else {
 				nameWarning.setVisible(true);
@@ -98,6 +101,9 @@ public class LoginPane extends GridPane{
 	public void getAndAddURL() {
 
 		TextField output = new TextField(gui.test.getAuthURL());
+		output.setEditable(false);
+		output.setStyle("-fx-background-color: transparent");
+
 		add(output,2,4);
 	}
 
